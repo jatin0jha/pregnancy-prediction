@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pregnancy Due Date Predictor</title>
+    <style>
+        :root {
+            --background-color: #f0f8ff;
+            --text-color: #000;
+            --input-background: #fff;
+            --input-border: #ccc;
+            --button-background: #007bff;
+            --button-hover-background: #0056b3;
+            --button-text-color: #fff;
+            --container-background: #fff;
+            --container-shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --input-background: #333;
+            --input-border: #444;
+            --button-background: #6200ea;
+            --button-hover-background: #3700b3;
+            --button-text-color: #fff;
+            --container-background: #1e1e1e;
+            --container-shadow: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            background: var(--container-background);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px var(--container-shadow);
+            text-align: center;
+        }
+
+        label,
+        input {
+            display: block;
+            margin: 10px 0;
+        }
+
+        input[type="date"],
+        input[type="number"] {
+            padding: 5px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+            background-color: var(--input-background);
+            border: 1px solid var(--input-border);
+            color: var(--text-color);
+        }
+
+        button {
+            background: var(--button-background);
+            color: var(--button-text-color);
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        .dark-mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--button-background);
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+    <div class="container">
+        <h2>Pregnancy Due Date Predictor</h2>
+        <label for="lmpDate">When was the first day of your last period?</label>
+        <input type="date" id="lmpDate" required>
+
+        <label for="cycleLength">Cycle Length (days):</label>
+        <input type="number" id="cycleLength" value="28" min="20" max="45" required>
+
+        <button onclick="calculateDueDate()">Calculate Due Date</button>
+
+        <div id="result" class="result"></div>
+    </div>
+    <script>
+        // Set max date for the LMP date input to today
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('lmpDate').setAttribute('max', today);
+        });
+
+        function calculateDueDate() {
+            const lmpDateInput = document.getElementById('lmpDate').value;
+            const cycleLengthInput = document.getElementById('cycleLength').value;
+
+            if (!lmpDateInput) {
+                alert('Please enter the first day of your last period.');
+                return;
+            }
+
+            if (!cycleLengthInput || cycleLengthInput < 20 || cycleLengthInput > 45) {
+                alert('Please enter a valid cycle length (20-45 days).');
+                return;
+            }
+
+            const lmpDate = new Date(lmpDateInput);
+            const cycleLength = parseInt(cycleLengthInput);
+            const today = new Date();
+            const maxPregnancyDuration = 40 * 7 * 24 * 60 * 60 * 1000; // 40 weeks in milliseconds
+
+            // Validate if LMP date is within a reasonable range
+            if (lmpDate.getTime() + maxPregnancyDuration < today.getTime()) {
+                document.getElementById('result').textContent = "The date entered is beyond the typical pregnancy duration. Please check your input.";
+                return;
+            }
+
+            // Calculate ovulation date assuming ovulation occurs about 14 days before next period
+            const ovulationDate = new Date(lmpDate);
+            ovulationDate.setDate(ovulationDate.getDate() + cycleLength - 14);
+
+            // Calculate due date
+            const dueDate = new Date(ovulationDate);
+            dueDate.setDate(dueDate.getDate() + 266); // 266 days from ovulation to due date
+
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            const formattedDueDate = dueDate.toLocaleDateString('en-US', options);
+
+            // Calculate days pregnant
+            const daysPregnant = Math.floor((today.getTime() - lmpDate.getTime()) / (1000 * 60 * 60 * 24));
+
+            document.getElementById('result').innerHTML = `Estimated Due Date: ${formattedDueDate}<br>Days Pregnant: ${daysPregnant}`;
+        }
+
+        function toggleDarkMode() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+
+            // Change icon based on the theme
+            const toggleButton = document.querySelector('.dark-mode-toggle');
+            toggleButton.textContent = newTheme === 'light' ? '🌙' : '☀️';
+        }
+
+    </script>
+</body>
+
+</html>
